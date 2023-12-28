@@ -1,7 +1,62 @@
-import Image from 'next/image'
-import Link from 'next/link'
+"use client";
+import Image from 'next/image';
+import Link from 'next/link';
+import React, {useState, useEffect} from 'react';
+import {collection, addDoc} from "firebase/firestore";
+import { db } from './temps/firebase';
+
+
 
 export default function Home() {
+  const [name, setName]=useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState({}); 
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => { 
+    validateForm(); 
+}, [name, email]); 
+// Validate form 
+const validateForm = () => { 
+    let errors = {}; 
+
+    if (!name) { 
+        errors.name = '*Name is required.'; 
+    } 
+
+    if (!email) { 
+        errors.email = '*Email is required.'; 
+    } if  (!/\S+@\S+\.\S+/.test(email)) { 
+        errors.email = '*Email is invalid.'; 
+    }
+
+    setErrors(errors); 
+    setIsFormValid(Object.keys(errors).length === 0); 
+};
+
+  const addRequest =async(e) =>{
+    e.preventDefault();
+    if (isFormValid){
+      try{
+        var time = new Date().getTime();
+        var date = new Date(time);
+        const docRef = await addDoc(collection(db, "requests"),{name:name, email:email,message:message, requestTime:date });
+        alert("Thank you for your request, we will reach out very soon");
+        console.log("A request logged with id: ", docRef.id);
+
+        setEmail("");
+        setName("");
+        setMessage("");
+        <Link href="/"></Link>
+  
+      }catch(e){console.error("Error in adding a request")};
+
+    }     
+
+
+  }
+
   return (
 <div>
       {/* Header section */}
@@ -113,23 +168,28 @@ export default function Home() {
         <div className="p-2 w-1/2">
           <div className="relative">
             <label  className="leading-7 text-sm text-gray-600">Name</label>
-            <input type="text" id="name" name="name" className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"/>
+            <input type="text" id="name" name="name" value={name} className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            onChange={(e)=>setName(e.target.value)}/>
+            {errors.name && <p className="text-sm text-red-900">{errors.name}</p>}
           </div>
         </div>
         <div className="p-2 w-1/2">
           <div className="relative">
             <label  className="leading-7 text-sm text-gray-600">Email</label>
-            <input type="email" id="email" name="email" className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"/>
+            <input type="email" id="email" name="email" value={email} className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+             onChange={(e)=>setEmail(e.target.value)} />
+             {errors.name && <p className="text-sm text-red-900">{errors.email}</p>}
           </div>
         </div>
         <div className="p-2 w-full">
           <div className="relative">
             <label  className="leading-7 text-sm text-gray-600">Message</label>
-            <textarea id="message" name="message" className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"></textarea>
+            <textarea id="message" name="message" value={message} className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"
+            onChange={(e)=>setMessage(e.target.value)}></textarea>
           </div>
         </div>
         <div className="p-2 w-full">
-          <button className="flex mx-auto text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg">Send</button>
+          <button type='submit'  onClick={addRequest} className="flex mx-auto text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg">Send</button>
         </div>
         <div className="p-2 w-full pt-8 mt-8 border-t border-gray-200 text-center">
           
