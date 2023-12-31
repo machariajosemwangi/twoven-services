@@ -7,12 +7,15 @@ import { db } from './temps/firebase';
 
 
 
+
 export default function Home() {
   const [name, setName]=useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({}); 
   const [isFormValid, setIsFormValid] = useState(false);
+
+
 
   useEffect(() => { 
     validateForm(); 
@@ -22,13 +25,13 @@ const validateForm = () => {
     let errors = {}; 
 
     if (!name) { 
-        errors.name = '*Name is required.'; 
+        // errors.name = '*Name is required.'; 
     } 
 
     if (!email) { 
-        errors.email = '*Email is required.'; 
-    } if  (!/\S+@\S+\.\S+/.test(email)) { 
-        errors.email = '*Email is invalid.'; 
+        // errors.email = '*Email is required.'; 
+    } else if  (!/\S+@\S+\.\S+/.test(email)) { 
+        // errors.email = '*Email is invalid.'; 
     }
 
     setErrors(errors); 
@@ -42,6 +45,7 @@ const validateForm = () => {
         var time = new Date().getTime();
         var date = new Date(time);
         const docRef = await addDoc(collection(db, "requests"),{name:name, email:email,message:message, requestTime:date });
+        sendEmail();
         alert("Thank you for your request, we will reach out very soon");
         console.log("A request logged with id: ", docRef.id);
 
@@ -55,15 +59,45 @@ const validateForm = () => {
     }     
 
 
-  }
+  };
+
+  // Nodemailer section
+  function sendEmail(){
+
+        let data = {
+          name,
+          email,
+          message
+      }
+      
+      fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }).then((res) => {
+          console.log('Response received')
+          if (res.status === 200) {
+              console.log('Response succeeded!')
+              setSubmitted(true) 
+              setName('')
+              setEmail('')
+              setMessage('')
+          }
+      })
+      };
+  
+
 
   return (
 <div>
       {/* Header section */}
-      <header className="text-gray-600 body-font">
-  <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
-    <Link className="flex title-font font-medium items-center text-blue-600 mb-4 md:mb-0" href="">     
-      <span className="ml-3 text-2xl font-bold">Twoven services</span>
+      <header className=" body-font ">
+  <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center bg-blue-500 ">
+    <Link className="flex title-font font-medium items-center text-white mb-4 md:mb-0" href="">     
+      <span className="ml-3 text-2xl ">Twoven services</span>
     </Link>
     <nav className="md:mr-auto md:ml-4 md:py-1 md:pl-4 md:border-l md:border-gray-400	flex flex-wrap items-center text-base justify-center">
             
@@ -74,10 +108,10 @@ const validateForm = () => {
 </header>
 
 {/* Content section */}
-<section className="text-gray-600 body-font">
-  <div className="container px-5 py-24 mx-auto">
-    <div className="flex flex-col text-center w-full mb-20">
-      <h1 className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">About Twoven services</h1>
+<section className="text-gray-600 body-font ">
+  <div className="container px-5 py-24 mx-auto  ">
+    <div className="flex flex-col text-center w-full mb-20  ">
+      <h1 className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900 ">About Twoven services</h1>
       <p className="lg:w-2/3 mx-auto leading-relaxed text-base">Twoven limited is a registered company in Kenya that offer consultations and other services in the digital world for over two years now. We have a strong expertise in different technologies and systems used in day to day business activities.</p>
     </div>
     <div className="flex flex-wrap">
@@ -189,7 +223,7 @@ const validateForm = () => {
           </div>
         </div>
         <div className="p-2 w-full">
-          <button type='submit'  onClick={addRequest} className="flex mx-auto text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg">Send</button>
+          <button type='submit' disabled={!name || !email} onClick={addRequest} className="flex mx-auto text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg">Send</button>
         </div>
         <div className="p-2 w-full pt-8 mt-8 border-t border-gray-200 text-center">
           
